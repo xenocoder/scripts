@@ -1,0 +1,10 @@
+#!/usr/bin/perl
+use Dateutil;
+
+$indate = $ARGV[0];
+
+$scdate = Dateutil::j2d(substr($indate,2,7));
+$sedate = Dateutil::d2e($scdate);
+
+$scdate = Dateutil::j2d(substr($indate,2,7));
+$sedate = Dateutil::d2e($scdate);

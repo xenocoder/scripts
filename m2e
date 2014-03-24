@@ -1,0 +1,12 @@
+#!/usr/bin/perl
+
+$opt_s = 0;
+
+use Getopt::Std;
+getopts('s');
+
+$mday = $ARGV[0];
+
+$eday = $mday - 693960;
+
+($opt_s eq 0) ? print("The Excel Day is: $eday\n") : print("$eday");

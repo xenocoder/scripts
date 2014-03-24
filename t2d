@@ -1,0 +1,80 @@
+#!/usr/bin/perl -w
+# 
+# This Perl script converts the TOPEX day to a 
+# calendar day.
+#
+# Calling sequence is: t2d tday
+
+$opt_s = 0;
+$opt_l = 0;
+
+use Getopt::Std;
+
+getopts('sl');
+
+%firstdays = qw(
+     1985     1
+     1986     366
+     1987     731
+     1988     1096
+     1989     1462
+     1990     1827
+     1991     2192
+     1992     2557
+     1993     2923
+     1994     3288
+     1995     3653
+     1996     4018
+     1997     4384
+     1998     4749
+     1999     5114
+     2000     5479
+     2001     5845
+     2002     6209
+     2003     6574
+     2004     6939
+     2005     7305
+     2006     7670
+     2007     8035
+     2008     8400
+);
+
+$topday = $ARGV[0];
+$tempday = $topday;
+
+if ($topday > 0 && $topday < 1156) {
+     $adddays = 0;
+} elsif ($topday >= 1156 && $topday < 2617) {
+     $adddays = 1;
+} elsif ($topday >= 2617 && $topday < 4077) {
+     $adddays = 2;
+} elsif ($topday >= 4077 && $topday < 5537) {
+     $adddays = 3;
+} elsif ($topday >= 5537) {
+     $adddays = 4;
+}
+
+$years = ($tempday - $adddays) / 365;
+$dyears = sprintf("%d", $years);
+$year = 1985 + $dyears;
+
+$shortyear = substr($year, 2, 2);
+
+$julday = ($topday - $firstdays{$year}) + 1;
+
+$yearpday = $shortyear.$julday;
+
+if ($opt_s eq 1) {
+   if ($opt_l eq 1) {
+      $calday = `j2d -sl $yearpday`;
+   } else {
+      $calday = `j2d -s $yearpday`;
+   }
+   chomp($calday);
+   print("$calday");
+} else {
+   $calday = `j2d $yearpday`;
+   chomp($calday);
+   print("$calday\n");
+}
+

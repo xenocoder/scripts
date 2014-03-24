@@ -1,0 +1,205 @@
+#!/bin/csh
+# To run the program, type:
+# 	makeplot <cycle #>
+
+
+setenv DATA_DIR /export/home/ehowell/data/topex/by_cycle
+setenv PLOT_DIR /export/home/ehowell/plots/topex 
+
+gmtset PAGE_ORIENTATION LANDSCAPE
+
+if (-e $DATA_DIR/cycle_{$1}) then
+	echo Now processing data file $DATA_DIR/cycle_{$1}
+else
+	echo No data file $DATA_DIR/cycle_{$1}!
+	exit 1
+endif
+
+# set some variables
+
+# define output filename
+set psfile = $PLOT_DIR/makeplot.$1.ps
+echo Creating output postscript file $psfile
+
+# define cpt file
+set cptfile = cpt
+
+# define proportional size of each figure and for all figures
+set range=180/215/15/35
+set annot = Bf1.00a3.00/f1.00a2.00WESn
+
+# relative original point 
+set xpos = 1.15
+set ypos = 2.0
+
+# smoothing radius and other stuffs
+set smooth = 6.5
+set increment = .5
+set increment2 = .1
+set contour = 5
+set vector = 60
+set vectorlegend = 20
+set min = 5
+
+
+# psheader to define absolute original point for each page
+./psheader 0.2 0.4 >! $psfile	# Empty header
+
+# plot basemap, coast map, and vectors
+#psbasemap -R$range -Jx0.25d -O -K -$annot -X$xpos -Y$ypos -U"Topex near-real time altimetry gridded at $increment2 degree resolution, levitus added, contours at $contour cm, smoothing radius $smooth degrees, vectors at $increment degree, only vectors >$min cm/sec shown" >> $psfile
+
+psbasemap -R$range -Jx0.25d -O -K -$annot -X$xpos -Y$ypos >> $psfile
+
+# topex near-real time altimetry data
+if (-e junk.dat) \rm junk.dat
+awk '{ printf "%.2f\t%.2f\t%.4f\n", $1, $2, $5 >> "junk.dat" }' $DATA_DIR/cycle_{$1}
+
+# smooth and grid the topex near-real time altimetry data to 'final1.grd'
+awk '{print $1, $2, $3}' junk.dat |\
+nearneighbor -S$smooth -I$increment/$increment -Gfinal1.grd -R$range -N4 -V -:
+
+# lightly smooth and grid the Levitus data to 'junk2.grd'
+awk '{print $1, $2, $3}' ./levitus |\
+nearneighbor -S2 -I$increment/$increment -Gjunk2.grd -R$range -N4 -V -:
+
+# rescale levitus grid to cm from mm creating 'junk2a.grd'
+# then add this to altimetry deviation grid creating 'junk3.grd'
+grdmath junk2.grd  0.1 MUL = junk2a.grd
+grdmath final1.grd junk2a.grd ADD = junk3.grd
+
+# calculates dzu dzdv components from 'junk3.grd' creating 'dzdx.grd' and 'dzdy.grd'
+grdgradient junk3.grd -A270 -Gdzdx.grd
+grdgradient junk3.grd -A180 -Gdzdy.grd
+
+# now need a grd file of latitudes for coriolis calculation 'junk3a.dat' 'junk3b.grd'
+grd2xyz junk3.grd > junk3a.dat
+awk '{print $1, $2, $2}' junk3a.dat |\
+xyz2grd -I$increment/$increment -R$range -Gjunk3b.grd
+
+# now do assorted coriolis calculations, first v
+grdmath junk3b.grd 0.01745329 MUL COS = cos.grd
+grdmath junk3b.grd 0.01745329 MUL SIN = sin.grd
+grdmath sin.grd cos.grd MUL = part1.grd
+grdmath part1.grd 0.0000729 MUL = part2.grd
+grdmath part2.grd 22235494.67040776 MUL = part3.grd
+grdmath 980 part3.grd DIV = part4.grd
+grdmath part4.grd dzdx.grd MUL = v.grd 
+grdinfo v.grd
+
+\rm cos.grd
+\rm sin.grd
+\rm part1.grd
+\rm part2.grd
+\rm part3.grd
+\rm part4.grd
+
+# now do u
+grdmath junk3b.grd 0.01745329 MUL SIN = sin.grd
+grdmath sin.grd 0.0000729 MUL = part2.grd
+grdmath part2.grd 22235494.67040776 MUL = part3.grd
+grdmath 980 part3.grd DIV = part4.grd
+grdmath part4.grd dzdy.grd MUL -1 MUL = u.grd 
+grdinfo u.grd
+
+\rm sin.grd
+\rm part2.grd
+\rm part3.grd
+\rm part4.grd
+
+#now regrid the topex data on a fine scale for color image
+# smooth and grid the topex near-real time altimetry data to 'final1f.grd'
+awk '{print $1, $2, $3}' junk.dat |\
+nearneighbor -S$smooth -I$increment2/$increment2 -Gfinal1f.grd -R$range -N4 -V -:
+ 
+\rm junk2.grd
+# lightly smooth and grid the Levitus data to 'junk2.grd'
+awk '{print $1, $2, $3}' ./levitus |\
+nearneighbor -S2 -I$increment2/$increment2 -Gjunk2.grd -R$range -N4 -V -:
+ 
+\rm junk2a.grd
+# rescale levitus grid to cm from mm creating 'junk2a.grd'
+# then add this to altimetry deviation grid creating 'junk3.grd'
+grdmath junk2.grd  0.1 MUL = junk2a.grd
+grdmath final1f.grd junk2a.grd ADD = junk3f.grd
+
+# color image and contour 'junk3f.grd'
+grdimage junk3f.grd -R$range -Jx -O -K -C$cptfile  >> $psfile
+
+# now set up files for surface command
+awk '{print $1, $2, $3}' junk.dat |\
+blockmean -I$increment2/$increment2 -R$range -V -: > surface.dat
+ 
+awk '{print $1, $2, $3}' surface.dat |\
+surface -R$range -I$increment2/$increment2 -Gfinal2b.grd -T0.05 -C5 -V -:
+grdmath final2b.grd junk2a.grd -V ADD = junk5.grd
+grdcontour junk5.grd -C$contour -A10 -G6/15 -R$range -S10 -Jx -O -K >> $psfile
+
+# needed a whole new set of coding to only keep large vectors...
+\rm junk3a.dat
+\rm junk3b.grd
+grd2xyz u.grd > junk3a.dat
+awk '{ if ($3 > 0) print $1, $2, 0 >> "tmp"; else print $1, $2, 360 >> "tmp" }' junk3a.dat
+xyz2grd tmp -I$increment/$increment -R$range -Gjunk3b.grd
+\rm tmp
+ 
+grdmath u.grd v.grd ATAN2 PI DIV 180 MUL junk3b.grd ADD = dir.grd
+grdmath u.grd 2 POW v.grd 2 POW ADD SQRT = mag.grd
+grd2xyz mag.grd > mag.dat
+awk '{ if ($3 > MIN) print $1, $2, 1 >> "tmp"; else print $1, $2, "NaN" >> "tmp" }' MIN=$min mag.dat
+\rm junk3b.grd
+xyz2grd tmp -I$increment/$increment -NNaN -R$range -Gjunk3b.grd
+grdmath u.grd junk3b.grd OR = u2.grd
+grdmath v.grd junk3b.grd OR = v2.grd
+grdvector u2.grd v2.grd -R$range -G255/255/255 -S$vector -Jx -Q0.01/0.05/0.025 -O -K >> $psfile
+
+echo "198.758 20.36" | psxy -Jx -R$range -Sa0.125 -G0/0/0 -W2/255/255/255 -L -O -K >> $psfile
+ 
+\rm dir.grd
+\rm mag.grd
+\rm mag.dat
+#\rm u2.grd
+#\rm v2.grd
+\rm tmp
+
+# add the vectors
+# grdvector u.grd v.grd -R$range -G255/255/255 -S$vector -Jx -Q0.01/0.05/0.025 -O -K >> $psfile
+
+# add coastline, hi resolution island data and fcz outline
+pscoast -Df -Jx -R$range -G0 -W -O -K >> $psfile
+psxy mhi.xy -R$range -Jx -O -K -: -W3.00/0/0/0 -M'>' >> $psfile
+psxy hifcz.xy -R$range -Jx -O -K -: -W3.00/0/0/0ta -M'>' >> $psfile
+
+# return to relative original point
+psxy /dev/null -R -Jx -O -K -X-$xpos -Y-$ypos >> $psfile
+
+# write the titles and color bar
+echo 5.525 7.3 15 0 -Helvetica 6 Sea level altimetry and geostrophic currents using Topex cycle $1 data |pstext -R0/11/0/8.5 -Jx1 -O -K >> $psfile
+grep "Cycle$1" dates|pstext -R0/11/0/8.5 -Jx1 -N -O -K >> $psfile
+echo 8.5 7.525 90 0.333333|psxy -SV0.01/0.05/0.025 -R -G0/0/0 -Jx -N -O -K >> $psfile
+echo 9 7.525 12 0 0 5 $vectorlegend cm/sec|pstext -R -Jx -O -K -G0/0/0 >> $psfile
+
+psscale -B:."Sea level (cm)": -C$cptfile -D5.5/0.75/9.0/0.33h -L -O -K >>$psfile
+
+./pstrailer >> $psfile
+
+cat $psfile | sed '/nan/d' >> temp.ps
+\mv temp.ps $psfile
+
+\rm final1.grd
+\rm final1f.grd
+\rm final2b.grd
+\rm surface.dat
+\rm junk.dat
+\rm junk2.grd
+\rm junk2a.grd
+\rm junk3.grd
+\rm junk3f.grd
+\rm junk5.grd
+\rm dzdx.grd
+\rm dzdy.grd
+\rm junk3a.dat
+\rm junk3b.grd
+\rm u.grd
+\rm v.grd
+
+gs $psfile

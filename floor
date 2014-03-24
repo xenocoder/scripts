@@ -1,0 +1,5 @@
+#!/usr/bin/perl
+
+$in = $ARGV[0];
+
+$out = printf("%d", $in);

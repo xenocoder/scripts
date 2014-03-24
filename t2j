@@ -1,0 +1,46 @@
+#!/usr/bin/perl -w
+# 
+# This Perl script converts the TOPEX day to a 
+# julian day.
+#
+# Calling sequence is: t2d tday
+
+%firstdays = qw(
+     1985     0
+     1986     365
+     1987     730
+     1988     1095
+     1989     1461
+     1990     1826
+     1991     2191
+     1992     2556
+     1993     2922
+     1994     3287
+     1995     3652
+     1996     4016
+     1997     4383
+     1998     4748
+     1999     5113
+);
+
+$topday = $ARGV[0];
+
+if ($topday > 0 && $topday < 1155) {
+     $adddays = 0;
+} elsif ($topday >= 1155 && $topday < 2616) {
+     $adddays = 1;
+} elsif ($topday >= 2616 && $topday < 4076) {
+     $adddays = 2;
+} elsif ($topday >= 4076) {
+     $adddays = 3;
+}
+
+$years = ($topday - $adddays) / 365;
+$dyears = sprintf("%d", $years);
+$year = 1985 + $dyears;
+
+#$shortyear = substr($year, 2, 2);
+
+$julday = ($topday - $firstdays{$year}) + 1;
+
+print $julday;

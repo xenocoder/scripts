@@ -1,0 +1,66 @@
+#!/usr/bin/perl
+# 
+# Program d2j transforms the date from a calendar day to a year day and
+# vice versa.
+#
+# Calling sequence is: j2d 98309 to get the calendar day and
+# j2d 11/05/98 to get the year day.
+#
+# Taken from the Cwutil.pm package and modified on 07/16/98 by EAH
+
+$opt_f = 0;
+$opt_s = 0;
+
+use Getopt::Std;
+
+getopts('fs');
+
+@months = (31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31);
+
+$jdate = $ARGV[0];
+
+# looks for string in the form 98309 here...
+if (($yr, $jday) = ($jdate =~ /^(\d\d)(\d*)$/)) {
+     ($yr < 50) ? ($yr += 2000) : ($yr += 1900);
+     $months[1] = 29 if (($yr % 4 == 0) || ($yr % 400 == 0));
+     for ($i = 0; $i < 12; $i++) {
+          if ($jday <= $months[$i]) {
+               $day = $jday;
+               $mo = $i;
+               last;
+          }			
+     $jday -= $months[$i];
+     }
+     $mo++;
+     $ans = sprintf "%02d\/%02d\/%04d", $mo, $day, $yr;		
+     #print("The date is: $ans\n");
+     print("$ans\n");
+}
+# looks for string in the form 11/05/98 here...
+#elsif (($mo, $day, $yr) = ($jdate=~ /^(\d?\d)\/(\d?\d)\/(\d?\d)$/)) {
+elsif (($mo, $day, $yr) = ($jdate=~ /^(\d?\d)\/(\d?\d)\/(\d+)$/)) {
+     if ($yr < 50) {
+         ($yr += 2000);
+     } elsif ($yr >=50 && $yr <=99) {
+         ($yr += 1900);
+     }
+     $months[1] = 29 if (($yr % 4 == 0) || ($yr % 400 == 0));
+     $jday = 0;
+     for ($i = 0; $i < $mo - 1; $i++) {
+          $jday += $months[$i];
+     }
+     $jday += $day;
+     if ($opt_s eq 1) {
+        $fullans = sprintf "%04d%03d", $yr, $jday;
+        $halfans = sprintf "%03d", $jday;
+     } else {
+        $fullans = sprintf "%04d%03d\n", $yr, $jday;
+        $halfans = sprintf "%03d\n", $jday;
+     }
+     #print("The year day is: $halfans\n");
+     if ( $opt_f eq 1 ) {
+        print("$fullans");
+     } else {
+        print("$halfans");
+     }
+}

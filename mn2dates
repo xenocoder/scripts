@@ -1,0 +1,30 @@
+#!/usr/bin/perl
+
+
+use Dateutil;
+
+@sdates = qw(0 1 32 60 91 121 152 182 213 244 274 305 335);
+@edates = qw(0 31 59 90 120 151 181 212 243 273 304 334 365);
+
+if ($#ARGV eq 0) {
+   $monthin = substr($ARGV[0], 0, 3);
+   $yearin = Dateutil::year2fullyear(substr($ARGV[0], 3, 2));
+} else {
+   $monthin = $ARGV[0];
+   $yearin = $ARGV[1];
+}
+
+$year = Dateutil::expandyear($yearin);
+
+$monthout = Dateutil::mon2num($monthin);
+
+$sday = $sdates[$monthout];
+$sday = $sday + 1 if (($year % 4 == 0) && $monthout > 2);
+$eday = $edates[$monthout];
+$eday = $eday + 1 if (($year % 4 == 0) && $monthout > 1);
+$sday = Dateutil::pad($sday);
+$eday = Dateutil::pad($eday);
+
+
+print("${year}${sday}_${year}${eday}\n");
+

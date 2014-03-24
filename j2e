@@ -1,0 +1,25 @@
+#!/usr/bin/perl
+
+use Dateutil;
+use Getopt::Std;
+
+$opt_s = 0;
+
+getopts('s');
+
+$inday = $ARGV[0];
+
+if ($inday =~ /(\d{7})/) {
+   $jday = substr($inday, 2, 5);
+} else {
+   $jday = $inday;
+}
+
+$cday = Dateutil::j2d($jday);
+$eday = Dateutil::d2e($cday);
+
+if ($opt_s eq 0) {
+   print("$eday\n");
+} else {
+   print("$eday");
+}

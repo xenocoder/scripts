@@ -1,0 +1,9 @@
+#!/usr/bin/perl
+
+use Dateutil;
+
+$eday = $ARGV[0];
+
+$jday = Dateutil::e2j($eday);
+
+($opt_s eq 1) ? (print "$jday") : (print "$jday\n");

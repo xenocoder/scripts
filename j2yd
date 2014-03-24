@@ -1,0 +1,25 @@
+#!/usr/bin/perl
+
+$opt_s = 0;
+use Dateutil;
+use Getopt::Std;
+getopts('s');
+
+$jday = $ARGV[0];
+
+$year = substr($jday, 0, 4);
+
+$cday = Dateutil::j2d(substr($jday,2,5));
+
+($month, $day, $year) = split("/", $cday);
+$month++ if ($day > 1);
+$submonth = $month - 1;
+
+$yearout = $year + (($submonth) / 12);
+$yearout = sprintf("%7.2f", $yearout);
+
+if ($opt_s eq 1) {
+   print("$yearout");
+} else {
+   print("$submonth $day $year $yearout\n");
+}

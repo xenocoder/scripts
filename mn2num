@@ -1,0 +1,42 @@
+#!/bin/ksh
+# 
+# This script returns a numerical value for the month given in the form mmm.
+#
+# e.g. - answer = `mn2num jan` would return an answer of 1.
+#
+# 12/10/01 - EAH
+
+mon=$1
+
+if [[ $mon = "jan" ]]; then
+   let monthnum=1
+elif [[ $mon = "feb" ]]; then
+   let monthnum=2
+elif [[ $mon = "mar" ]]; then
+   let monthnum=3
+elif [[ $mon = "apr" ]]; then
+   let monthnum=4
+elif [[ $mon = "may" ]]; then
+   let monthnum=5
+elif [[ $mon = "jun" ]]; then
+   let monthnum=6
+elif [[ $mon = "jul" ]]; then
+   let monthnum=7
+elif [[ $mon = "aug" ]]; then
+   let monthnum=8
+elif [[ $mon = "sep" ]]; then
+   let monthnum=9
+elif [[ $mon = "oct" ]]; then
+   let monthnum=10
+elif [[ $mon = "nov" ]]; then
+   let monthnum=11
+elif [[ $mon = "dec" ]]; then
+   let monthnum=12
+else
+   print "month $mon is not a valid month, exiting"
+   return 1
+fi
+
+print "$monthnum"
+
+

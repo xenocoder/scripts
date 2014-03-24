@@ -1,0 +1,37 @@
+#!/bin/ksh
+
+silent=no
+
+while getopts ":R:S" opt; do
+     case $opt in
+          R ) rangeset=yes
+              range=$OPTARG ;;
+          S ) silent=yes ;;
+          \? ) print "That is not a valid option, exiting..."
+               return 1 ;;
+     esac
+done
+shift $((OPTIND - 1))
+
+if [[ ! -a $1 ]]; then
+   return 1
+else
+   infile=$1
+fi
+
+if [[ $rangeset = "yes" ]]; then
+   /usr/local/bin/grdcut $infile -R$range -Gtemp.grd
+   set -A info `/usr/local/bin/grdinfo -C -L2 temp.grd`
+   rm temp.grd
+else
+   set -A info `/usr/local/bin/grdinfo -C -L2 $infile`
+fi
+
+
+average=${info[11]}
+
+if [[ $silent = "yes" ]]; then
+   echo -n "$average"
+else
+   echo "The average of file $infile is $average"
+fi

@@ -1,0 +1,18 @@
+#!/usr/bin/perl -w
+
+use Dateutil;
+use Topexutil;
+
+$sday = $ARGV[0];
+$eday = $ARGV[1];
+$slon = $ARGV[2];
+$elon = $ARGV[3];
+$slat = $ARGV[4];
+$elat = $ARGV[5];
+
+$stdate = Topexutil::d2t($sday);
+$etdate = Topexutil::d2t($eday);
+
+$dayduration = $etdate - $stdate;
+
+

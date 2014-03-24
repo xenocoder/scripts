@@ -1,0 +1,55 @@
+#!/usr/bin/perl -w
+
+%monthdays = qw(
+     1     0
+     2    31
+     3    59
+     4    90
+     5    120
+     6    151
+     7    181
+     8    212
+     9    243
+    10    273
+    11    304
+    12    334
+);
+
+%monthdayleap = qw(
+     1     0
+     2    31
+     3    60
+     4    91
+     5    121
+     6    152
+     7    182
+     8    213
+     9    244
+    10    274
+    11    305
+    12    335
+);
+
+
+
+$month = $ARGV[0];
+$day = $ARGV[1];
+$year = $ARGV[2];
+
+$basedays = (($year - 1985) * 365);
+
+if ($year == 1992 || $year == 1996) {
+     $adddays = $monthdayleap{$month};
+} else {
+     $adddays = $monthdays{$month};
+     if ($year > 1992 && $year < 1996) {
+          $adddays++;
+     } elsif ($year > 1996 && $year < 2000) {
+          $adddays = $adddays + 2;
+     }
+}
+
+#print("Baseday: $basedays, Adddays: $adddays, Day: $day\n");
+$julday = $basedays + $adddays + $day;
+
+print("$julday");

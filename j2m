@@ -1,0 +1,33 @@
+#!/usr/bin/perl
+#
+# Program d2m transforms the year day from a calendar day to MATLAB based day (days from 1/1/1)
+#
+# Call: j2m <-s> yyyyjjj
+# yyyyjjj: The date in the form 1999301. 
+#
+# Version: 1.0 3/3/2006 - EAH
+$opt_s = 0;
+use POSIX qw(ceil floor);
+use Getopt::Std;
+getopts('s');
+
+#Check to make sure date is entered
+my $USAGE = <<END;
+Error! Calling sequence: j2m -s yyyyjjj
+END
+die "$USAGE" unless (@ARGV >= 1);
+
+my $indate = $ARGV[0];
+if ($indate =~ /\d\d\d\d\d\d\d/) {
+    $year = substr($indate, 0, 4);
+    $jday = substr($indate, 4, 3);
+} else {
+    die "$USAGE";
+}
+$t = 365.0*$year + ceil($year/4.0) - ceil($year/100.0) + ceil($year/400.0) + $jday;
+
+if ($opt_s eq 1) {
+   print("$t");
+} else {
+   print("$t\n");
+}

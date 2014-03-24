@@ -1,0 +1,92 @@
+#!/bin/ksh
+# grdave4 is a Korn Shell script to make an average of four grd files.
+#
+# To run the program, type:
+# 	grdave4 [-i <inc> -r <range>] <grdfile1> <grdfile2> <grdfile3> <grdfile4> <outfile>
+
+
+while getopts ":i:r:" opt; do
+     case $opt in
+          i ) increment=$OPTARG ;;
+          r ) range=$OPTARG ;;
+          \? ) print "That is not a valid option, exiting..."
+               return 1 ;;
+     esac
+done
+shift $((OPTIND - 1))
+
+for file in "$@"; do
+     print "File: $file"
+done
+
+if [[ -z $increment || -z $range ]]; then
+     print "Usage: grdave4 [-i <increment> -r <range>] <file1> <file2> <file3> <file4> <outfile>"
+     return 1
+fi
+
+if [[ ! -a $1 || ! -a $2 || ! -a $3 || ! -a $4 ]]; then
+     print "You must enter four files that exist, exiting..."
+     return 1
+fi 
+
+set -A grdfiles $1 $2 $3 $4
+
+print "Infile one to average is: $1"
+print "Infile two to average is: $2"
+print "Infile three to average is: $3"
+print "Infile four to average is: $4"
+
+outfile=$5
+
+if [[ -z $outfile ]]; then
+     print "You must enter an output file name, exiting..."
+     return 1
+fi
+
+print "Averaging files to $outfile"
+ 
+FILES="0 1 2 3"
+
+for file in $FILES; do
+
+     # Here need some routines to determine sample size per cell for averaging
+     # and replace NaN's in the grd files with zeros. Or else the NaN's propogate
+     # thru and mask out large regions in certain months.
+
+     print "Replacing NaNs in file ${grdfiles[$file]} with 0s"
+
+     grd2xyz ${grdfiles[$file]} > grid.dat
+     awk '{ if ($3 == "NaN") print $1, $2, 0 >> "newgrid.dat"; else print $1, $2, $3  >> "newgrid.dat" }' grid.dat
+     awk '{ if ($3 == "NaN") print $1, $2, 0 >> "count.dat"; else print $1, $2, 1  >> "count.dat" }' grid.dat
+     print "Making file newgrid${file}.grd"
+     xyz2grd newgrid.dat -I$increment/$increment -R$range -Gnewgrid${file}.grd
+     print "Making file newcount${file}.grd"
+     xyz2grd count.dat -I$increment/$increment -R$range -Gnewcount${file}.grd
+
+     rm grid.dat
+     rm newgrid.dat
+     rm count.dat
+done
+
+print "Doing grdmath"
+grdmath newgrid0.grd newgrid1.grd ADD newgrid2.grd ADD newgrid3.grd ADD = sum.grd
+grdmath newcount0.grd newcount1.grd ADD newcount2.grd ADD newcount3.grd ADD = count.grd
+rm newgrid0.grd; rm newcount0.grd
+rm newgrid1.grd; rm newcount1.grd
+rm newgrid2.grd; rm newcount2.grd
+rm newgrid3.grd; rm newcount3.grd
+
+# Now need to avoid dividing by zero, so if count grid has zero element, change it to NaN
+print "Changing 0s back to NaNs"
+grd2xyz count.grd > count.dat
+awk '{ if ($3 == 0) print $1, $2, "NaN"; else print $1, $2, $3}' count.dat > newcount.dat
+xyz2grd newcount.dat -I$increment/$increment -R$range -Gnewcount.grd
+     
+print "Dividing to get the average"
+grdmath sum.grd newcount.grd DIV = $outfile
+
+rm count.dat
+rm newcount.dat
+rm sum.grd
+
+print "Done!!!"

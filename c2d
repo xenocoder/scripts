@@ -1,0 +1,34 @@
+#!/usr/bin/perl
+# 
+# This is a short Perl script to calculate the starting 1985
+# TOPEX day from the cycle given.
+#
+# Calling sequence is: c2t <cycle #>
+#
+# Written 07/31/98 by EAH
+#
+# Copyright 1998 Central Pacific Coastwatch
+
+$opt_s = 0;
+
+use Getopt::Std;
+
+getopts('s');
+
+   $cycle = $ARGV[0];
+
+   $tpx85 = (2822.17 + ( 9.9156 * ( $cycle - 1 )));
+
+   $tpx85 = sprintf("%4d", $tpx85);
+
+   $tpx85end = $tpx85 + 9;
+
+   $daystart = `t2d -s $tpx85`;
+
+   $dayend = `t2d -s $tpx85end`;
+
+if ($opt_s eq 1) {
+     printf("%s %s", $daystart, $dayend);
+} else {
+     printf("Cycle $cycle: start day: %s end day: %s\n", $daystart, $dayend);
+}

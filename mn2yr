@@ -1,0 +1,13 @@
+#!/usr/bin/perl
+
+$monthyr = $ARGV[0];
+
+$month = substr($monthyr, 3, 2);
+
+if ($month < 80) {
+   $year = "20".substr($monthyr, 3, 2);
+} else {
+   $year = "19".substr($monthyr, 3, 2);
+}
+
+print("$year");

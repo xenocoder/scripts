@@ -1,0 +1,51 @@
+#!/usr/bin/perl
+
+$opt_s = 0;
+
+use Getopt::Std;
+
+@months = (31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31);
+
+while (<>) {
+
+   ($date, $depth) = split(" ", $_);
+
+#   print("The date is: $date\n");
+#   print("The depth is: $depth\n");
+#   print("$_\n");
+
+   ($month, $day, $smallyear) = split("/", $date);
+
+   if ($smallyear > 50) {
+      $year = $smallyear;
+   } else {
+      $year = 100 + $smallyear
+   }
+
+   #print("The year is: $year\n");
+
+   $remainder = $year % 4;
+
+   $yearin = $year - $remainder;
+
+   $leapdays = $yearin / 4;
+
+   $basedays = ($year * 365) + $leapdays + 1;
+
+   #print("there were $leapdays leapyears so far\n");
+
+   $months[1] = 29 if (($yr % 4 == 0) || ($yr % 400 == 0));
+   $ldday = 0;
+   for ($i = 0; $i < $month - 1; $i++) {
+        $ldday += $months[$i];
+   }
+   $ldday += $day;
+
+   $ldday += $basedays;
+
+if ($opt_s eq 1) {
+     print("$ldday");
+} else {
+     print("$ldday $depth\n");
+}
+}

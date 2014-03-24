@@ -1,0 +1,91 @@
+#!/usr/bin/perl -w
+# 
+# This Perl script converts the calendar day to an 
+# EXCEL day.
+#
+# Calling sequence is: d2t mm/dd/yy
+
+$opt_s = 0;
+
+use Getopt::Std;
+getopts('s');
+
+%monthdays = qw(
+     1     0
+     2    31
+     3    59
+     4    90
+     5    120
+     6    151
+     7    181
+     8    212
+     9    243
+    10    273
+    11    304
+    12    334
+);
+
+%monthdayleap = qw(
+     1     0
+     2    31
+     3    60
+     4    91
+     5    121
+     6    152
+     7    182
+     8    213
+     9    244
+    10    274
+    11    305
+    12    335
+);
+
+$date = $ARGV[0];
+
+($month, $day, $year) = split("/", $date);
+
+if ($year > 1980) {
+   $year=substr($year, 2, 2);
+}
+
+if ( $year > 80 ) {
+     $year = 1900 + $year;
+} else {
+     $year = 2000 + $year;
+}
+
+$basedays = (($year - 1981) * 365) + 29586;
+
+
+if (substr($month, 0, 1) == 0) {
+     $month = substr($month, 1, 1);
+}
+
+if ($year== 1984 || $year == 1988 || $year == 1992 || $year == 1996 || $year == 2000 || $year == 2004 || $year == 2008) {
+     $adddays = $monthdayleap{$month};
+} else {
+     $adddays = $monthdays{$month};
+}
+
+if ($year > 1984 && $year <= 1988) {
+     $adddays++;
+} elsif ($year > 1988 && $year <= 1992) {
+     $adddays = $adddays + 2;
+} elsif ($year > 1992 && $year <= 1996) {
+     $adddays = $adddays + 3;
+} elsif ($year > 1996 && $year <= 2000) {
+     $adddays = $adddays + 4;
+} elsif ($year > 2000 && $year <= 2004) {
+     $adddays = $adddays + 5;
+} elsif ($year > 2004 && $year <= 2008) {
+     $adddays = $adddays + 6;
+}
+
+#print("Baseday: $basedays, Adddays: $adddays, Day: $day\n");
+$eday = $basedays + $adddays + $day;
+
+if ($opt_s eq 1) {
+   print("$eday");
+} else {
+   print("$eday\n");
+}

@@ -1,0 +1,23 @@
+#!/usr/bin/perl
+###################################################################
+# Program cwdate by Evan Howell, 25-Jul-2006
+
+# This is a script to convert dates in multiple formats to 
+# the "Coastwatch" format (e.g. 2006001_2006031)
+#
+# Switches: -s (silent)
+#
+# Input: date in one of these forms:
+#        mm/dd/yyyy (e.g. 06/01/2006: output yyyyddd_yyyyddd)
+#        Mon yyyy (e.g. Jun 2006: output yyyyddd_yyyyddd)
+#        mm yyyy (e.g. 06 2006: output yyyyddd_yyyyddd)
+#
+# Examples: 
+#        cwdate 06/02/2006 results in 2006121_2006152\n
+#        cwdate -s Jun 2006 results in 2006121_2006152
+#        cwdate 06 2006 results in 2006121_2006152\n
+#
+# Version
+
+#***********************************************************
+

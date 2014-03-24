@@ -1,0 +1,16 @@
+#!/bin/ksh
+#
+# This is a Korn Shell script to give the processes
+# that are running for a specific userid.
+#
+# Written 9/24/98 by EAH
+#
+# calling sequence is: psg <userid>
+
+if [[ -z $1 ]]; then
+     userid=500
+else
+     userid=$1
+fi
+
+ps -eal | grep "$userid"

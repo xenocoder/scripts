@@ -1,0 +1,142 @@
+#!/usr/bin/perl
+#
+
+$opt_t = "";
+
+use Dateutil;
+use Getopt::Std;
+
+getopts('t:');
+
+$day = $ARGV[0];
+
+if ($opt_t eq "" or $day eq "") {
+   print("Calling sequence: matchday -t <dataset> yyyyddd\n");
+   print("yyyyddd output is from d2j -f 1/1/2004\n");
+   exit 1;
+}
+
+if ($opt_t eq "aviso_u") {
+   `ls /home/DATA/aviso/uv_grd/*u.grd > files`;
+    $prefix="AV";
+} elsif ($opt_t eq "aviso_v") {
+   `ls /home/DATA/aviso/uv_grd/*v.grd > files`;
+    $prefix="AV";
+} elsif ($opt_t eq "aviso") {
+   `ls /home/DATA/aviso/ssh_grd/*.grd > files`;
+    $prefix="AV";
+} elsif ($opt_t eq "nodc") {
+   `ls /home/ehowell/projects/pop_up_tags/kfsst/nodc/*.grd.dat > files`;
+    $prefix="AV";
+} elsif ($opt_t eq "oscar_u") {
+   `ls /home/DATA/sfc_vel/grd/*u.grd > files`;
+    $prefix="OS";
+} elsif ($opt_t eq "oscar_v") {
+   `ls /home/DATA/sfc_vel/grd/*v.grd > files`;
+    $prefix="OS";
+} elsif ($opt_t eq "reynolds") {
+   `ls /home/DATA/reynolds/weekly/RS1[8-9]*sst.grd > files`;
+   `ls /home/DATA/reynolds/weekly/RS2*sst.grd >> files`;
+    $prefix="RS";
+} elsif ($opt_t eq "reymonth") {
+   `ls /home/DATA/reynolds/monthly/*.grd > files`;
+    $prefix="RS";
+} elsif ($opt_t eq "curl") {
+   `ls /home/DATA/wind/monthly/*.grd > files`;
+    $prefix="??";
+} elsif ($opt_t eq "pathfinder") {
+   `ls /home/DATA/pathfinder/V4/weekly/*sst.grd > files`;
+    $prefix="PF";
+} elsif ($opt_t eq "pathmonth") {
+   `ls /home/DATA/pathfinder/monthly/*.grd > files`;
+    $prefix="PF";
+} elsif ($opt_t eq "front") {
+   `ls /home/ehowell/projects/lllogbook_old/palmyra/sstfront/grd/*.grd > files`;
+} elsif ($opt_t eq "modis_chla") {
+   `ls /home/DATA/modis_chla/loggerhead/*chla.grd > files`;
+    $prefix="MO";
+} elsif ($opt_t eq "seawifs") {
+   `ls /home/DATA/seawifs/weekly/*chla.grd > files`;
+    $prefix="SW";
+} elsif ($opt_t eq "seawifsm") {
+   `ls /home/DATA/seawifs/monthly/*chla.grd > files`;
+    $prefix="SW";
+} elsif ($opt_t eq "mcsst") {
+   $syear=substr($day, 2, 2);
+   if ($syear < 50) {
+      $year = 2000 + $syear;
+   } else {
+      $year = 1900 + $syear;
+   }
+   `ls /home/DATA/mcsst/weekly/$year/*.grd_pacbasin > files`;
+}
+$dataset = $opt_t;
+
+open(FILES, files) or die "Cannot open file files";
+
+$i = 0;
+$count = 0;
+$bit=0;                             #Set counters...
+$matchmade = 0;                     #Set variables...
+@ways = ("plus", "minus");          #Set variables...
+$matchdateplus = $day;        #Set variables...
+$matchdateminus = $day;       #Set variables...
+
+
+while ($line = <FILES>) {
+   chomp $line;
+
+   $files[$i] = $line;
+
+   $i++;
+}
+
+@out = testday($day);
+
+if ($out[0] eq 1) {
+   print("$out[1]");
+} else {
+   while ($count <= 11) {
+#      if ($ways[$bit] eq "plus") {
+#         $matchdateplus++;
+#         print("No match yet, now trying $matchdateplus\n");
+#         @out = testday($matchdateplus);
+#         if ( $out[0] == 1) { # If match is found break...
+#            print("$out[1]");
+#            last;
+#         }
+#         $bit = 1;
+#      } elsif ($ways[$bit] eq "minus") {
+         #$matchdateminus = testday($matchdateminus);
+         $edate = Dateutil::j2e(substr($matchdateminus,2,5));
+         #$matchdateminus--;
+         $edate--;
+         $matchdateminus = Dateutil::e2j($edate);
+#         print("No match yet, now trying $matchdateminus\n");
+         $matchtemp = "$prefix$matchdateminus";
+         @out = testday($matchtemp);
+         if ( $out[0] == 1) { # If match is found break...
+#            print("Got one! File $out[1] matched... Proceeding...\n");
+            print("$out[1]\n");
+            last;
+         }
+         $bit = 0;
+#      }
+      $count++;
+   }
+}
+
+
+sub testday {
+
+   my $tomatch = shift;
+
+   @matches = grep /$tomatch/, @files;
+
+   if ($#matches >= 0) {
+      chomp($matches[0]);
+      $matchmade = 1;
+      @out = ($matchmade, $matches[0]);
+      return @out;
+   }
+}

@@ -1,0 +1,12 @@
+#!/bin/ksh
+
+`psg | grep "<defunct>" | nawk '{print $5}' > temp.ls`;
+
+open(INFILE, "temp.ls") or die "Cannot open file temp.ls";
+while (<INFILE>) {
+      ($one, $two, $three, $process) = split(" ", $_);
+      print("Killing process $process\n");
+      `kill -9 $process`;
+}
+
+`rm temp.ls`;

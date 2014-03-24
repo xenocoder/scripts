@@ -1,0 +1,28 @@
+#!/usr/bin/perl
+
+use Dateutil;
+use Getopt::Std;
+
+$opt_s = 0;
+$opt_c = 0;
+
+getopts('cs');
+
+$timein = $ARGV[0];
+
+$sjday = substr($timein, 4, 5);
+$scday = j2d($sjday);
+$ejday = substr($timein, 12, 5);
+$ecday = j2d($ejday);
+
+if ($opt_c eq 1) {
+   $div = ",";
+} else {
+   $div = "";
+}
+
+if ($opt_s eq 1) {
+   print("$scday$div$ecday");
+} else {
+   print("$scday$div$ecday\n");
+}

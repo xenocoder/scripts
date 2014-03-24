@@ -1,0 +1,103 @@
+#!/usr/bin/perl -w
+# 
+# This Perl script converts the EXCEL day to a 
+# calendar day.
+#
+# Calling sequence is: e2d excelday
+
+$opt_j = 0;
+$opt_s = 0;
+
+use EMath;
+use Getopt::Std;
+
+getopts('js');
+
+%firstdays = qw(
+1979	28856
+1980	29221
+1981	29587
+1982	29952
+1983	30317
+1984	30682
+1985	31048
+1986	31413
+1987	31778
+1988	32143
+1989	32509
+1990	32874
+1991	33239
+1992	33604
+1993	33970
+1994	34335
+1995	34700
+1996	35065
+1997	35431
+1998	35796
+1999	36161
+2000	36526
+2001	36892
+2002	37257
+2003	37622
+2004	37987
+2005	38353
+2006	38718
+2007	39083
+2008	39448
+2009	39814
+2010	40179
+);
+
+$topday = floor($ARGV[0]);
+$tempday = $topday;
+
+if ($topday > 0 && $topday < 29221) {
+     $adddays = 0;
+} elsif ($topday >= 29221 && $topday < 30682) {
+     $adddays = 2;
+} elsif ($topday >= 0 && $topday < 32143) {
+     $adddays = 3;
+} elsif ($topday >= 32143 && $topday < 33604) {
+     $adddays = 4;
+} elsif ($topday >= 33604 && $topday < 35065) {
+     $adddays = 5;
+} elsif ($topday >= 35065 && $topday < 36526) {
+     $adddays = 6;
+} elsif ($topday >= 36526) {
+     $adddays = 7;
+}
+
+$years = ($tempday - $adddays - 28855) / 365;
+$dyears = sprintf("%d", $years);
+$year = 1979 + $dyears;
+
+$shortyear = substr($year, 2, 2);
+
+$julday = ($topday - $firstdays{$year}) + 1;
+
+if ($julday eq 0) {
+   $year = $year - 1;
+   $shortyear = $shortyear - 1;
+   if (($year % 4) eq 0) {
+      print("In leap year\n");
+      $julday = 366;
+   } else {
+      $julday = 365;
+   }
+}
+
+$yearpday = $shortyear.$julday;
+
+$calday = `/home/ehowell/bin/j2d -s $yearpday`;
+
+if ( $opt_j eq 1) {
+   $calday = $yearpday;
+}
+
+if ($opt_s eq 1) {
+   chomp($calday);
+   print("$calday");
+} else {
+   print("$calday\n");
+}
+
