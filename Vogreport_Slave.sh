@@ -3,7 +3,6 @@
 # Get report from http://mkwc.ifa.hawaii.edu/vmap/current/index.cgi
 #Don't forget PATHS to executables in Geektool!
 
-/opt/local/bin/lynx http://mkwc.ifa.hawaii.edu/vmap/current/index.cgi -dump | grep "Honolulu" >> /Users/evan.howell/Dropbox/log/vogreport.log
 rawreport=`tail -n 1 /Users/evan.howell/Dropbox/log/vogreport.log`
 
 city=`echo $rawreport | cut -d" " -f1`
